@@ -282,6 +282,7 @@ const ProductSetupPage = () => {
                       onChange={(e) => handleInputChange(i, 'productPrice', e.target.value)} 
                       placeholder="0"
                       min="0"
+                      onWheel={(e) => e.target.blur()}  // ✅ prevents scroll adjustment
                     />
                   </div>
                   <div style={styles.formGroup}>
