@@ -19,6 +19,9 @@ const BusinessInfoPage = () => {
     logoUrl: '',
     companyMission: '',
     companyHistory: '',
+    // --- NEW FIELDS ---
+    heroImageUrl: '',
+    galleryImageUrls: '',
   });
   const [selectedTheme, setSelectedTheme] = useState(null);
   const [errors, setErrors] = useState({});
@@ -106,6 +109,8 @@ const BusinessInfoPage = () => {
       logoUrl: { label: "Logo URL", type: "input" },
       companyMission: { label: "Company Mission", type: "textarea" },
       companyHistory: { label: "Company History", type: "textarea" },
+      heroImageUrl: { label: "Hero Image URL (Optional)", type: "input" },
+      galleryImageUrls: { label: "Gallery Image URLs (comma-separated)", type: "textarea" },
   };
 
   return (

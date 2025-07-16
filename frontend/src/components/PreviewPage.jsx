@@ -34,10 +34,28 @@ const PreviewPage = () => {
 
   // --- Components for Page Sections ---
 
+  const HeroSection = () => {
+    const heroImage = businessData.heroImageUrl;
+    const heroStyle = heroImage
+      ? { ...styles.heroSection, backgroundImage: `url('${heroImage}')` }
+      : { ...styles.heroSection, background: theme.heroBackground };
+      
+    return (
+        <section id="home" style={heroStyle}>
+            {!heroImage && <IndustryAnimation industry={selectedIndustry} />}
+            <div style={styles.heroOverlay}></div>
+            <div style={styles.heroContent}>
+                <h1 style={styles.heroTitle}>{businessData.businessName || 'Welcome to Our Website'}</h1>
+                <p style={styles.heroSubtitle}>{businessData.businessDescription || 'Your one-stop solution for excellence and quality.'}</p>
+            </div>
+        </section>
+    );
+  };
+
   const IndustryAnimation = ({ industry }) => {
     const industryIcons = {
         'Cosmetics': ['💄', '💅', '🧴', '✨'], 'Pharmacy': ['💊', '➕', '🩺', '🌿'], 'Restaurant': ['🍕', '🍔', '🍜', '🍰'],
-        'Electronics': ['📱', '💻', '🎧', '📷'], 'Clothing': ['👗', '👕', '👠', '👜'], 'Grocery': ['🍎', '🍞', '🥕', '🥛'], 'Default': ['⭐', '🛍️', '📦', '💡']
+        'Electronics': ['📱', '💻', '🎧', '📷'], 'Clothing': ['👗', '👕', '👠', '👜'], 'Grocery': ['🍎', '🍞', '🥕', '🥛'], 'Default': ['⭐', '🛍️', '�', '💡']
     };
     const icons = industryIcons[industry] || industryIcons['Default'];
     const positions = [
@@ -45,6 +63,48 @@ const PreviewPage = () => {
         { top: '25%', left: '80%', animation: 'float 7s ease-in-out infinite' }, { top: '60%', left: '90%', animation: 'float 9s ease-in-out infinite' },
     ];
     return <div style={styles.animationContainer}>{icons.map((icon, index) => <div key={index} style={{ ...styles.animatedIcon, ...positions[index] }}>{icon}</div>)}</div>;
+  };
+
+  const GallerySection = () => {
+    const imageUrls = businessData.galleryImageUrls?.split(',').map(url => url.trim()).filter(Boolean);
+    const placeholderImages = [
+        `https://placehold.co/1200x600/${theme.primary.substring(1)}/FFFFFF?text=Showcase+1`,
+        `https://placehold.co/1200x600/${theme.secondary.substring(1)}/FFFFFF?text=Showcase+2`,
+        `https://placehold.co/1200x600/222222/FFFFFF?text=Showcase+3`,
+    ];
+    const images = imageUrls?.length > 0 ? imageUrls : placeholderImages;
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        if (images.length === 0) return;
+        const timer = setInterval(() => {
+            setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
+        }, 3000);
+        return () => clearInterval(timer);
+    }, [images.length]);
+
+    if (!businessData.galleryImageUrls && !placeholderImages.length) return null;
+
+    return (
+        <section id="gallery" style={styles.gallerySection}>
+            <h2 style={styles.sectionTitle}>Our Gallery</h2>
+            <div style={styles.sliderContainer}>
+                {images.map((url, index) => (
+                    <img
+                        key={index}
+                        src={url}
+                        alt={`Gallery image ${index + 1}`}
+                        style={{ ...styles.sliderImage, opacity: index === currentIndex ? 1 : 0 }}
+                    />
+                ))}
+                <div style={styles.sliderDots}>
+                    {images.map((_, index) => (
+                        <span key={index} style={{...styles.sliderDot, backgroundColor: index === currentIndex ? theme.primary : '#ccc'}}></span>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
   };
 
   const ServicesSection = () => {
@@ -122,13 +182,18 @@ const PreviewPage = () => {
     previewControls: { position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(10px)', color: 'white', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000 },
     controlButton: { background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', margin: '0 6px', fontWeight: '500' },
     websiteContainer: { marginTop: '65px' },
-    header: { background: theme.heroBackground, color: 'white', padding: '20px 24px', position: 'sticky', top: '65px', zIndex: 900, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' },
+    header: { background: 'transparent', color: 'white', padding: '20px 24px', position: 'absolute', top: '65px', left: 0, right: 0, zIndex: 900 },
     headerContent: { maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    headerBrand: { display: 'flex', alignItems: 'center', gap: '16px' },
-    logoImage: { width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' },
+    headerBrand: { display: 'flex', alignItems: 'center', gap: '16px', textShadow: '0 1px 3px rgba(0,0,0,0.3)' },
+    logoImage: { width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px', border: '2px solid rgba(255,255,255,0.5)' },
     businessName: { fontSize: '1.5rem', fontWeight: 'bold' },
-    nav: { display: 'flex', gap: '24px' },
-    navLink: { color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontWeight: '500', fontSize: '1rem', transition: 'color 0.2s', cursor: 'pointer' },
+    nav: { display: 'flex', gap: '24px', textShadow: '0 1px 3px rgba(0,0,0,0.3)' },
+    navLink: { color: 'rgba(255,255,255,0.9)', textDecoration: 'none', fontWeight: '500', fontSize: '1rem', transition: 'color 0.2s', cursor: 'pointer' },
+    heroSection: { height: '80vh', backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', color: 'white', position: 'relative', overflow: 'hidden' },
+    heroOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 2 },
+    heroContent: { position: 'relative', zIndex: 3, maxWidth: '800px', padding: '0 20px' },
+    heroTitle: { fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 'bold', marginBottom: '20px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' },
+    heroSubtitle: { fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', textShadow: '0 1px 3px rgba(0,0,0,0.5)', maxWidth: '600px', margin: '0 auto' },
     section: { padding: '100px 24px', position: 'relative', overflow: 'hidden' },
     sectionTitle: { fontFamily: "'Georgia', 'Times New Roman', serif", fontSize: '3rem', textAlign: 'center', marginBottom: '50px', color: theme.textDark, fontWeight: 'normal' },
     aboutSection: { backgroundColor: '#FFFFFF' },
@@ -137,48 +202,30 @@ const PreviewPage = () => {
     readMoreButton: { display: 'inline-block', marginTop: '30px', padding: '12px 24px', border: `2px solid ${theme.primary}`, color: theme.primary, backgroundColor: 'transparent', borderRadius: '50px', fontWeight: 'bold', textDecoration: 'none', cursor: 'pointer', transition: 'all 0.3s ease' },
     animationContainer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1 },
     animatedIcon: { position: 'absolute', fontSize: '6rem', opacity: 0.15, color: theme.primary },
+    gallerySection: { backgroundColor: '#FFFFFF' },
+    sliderContainer: { maxWidth: '1000px', margin: '0 auto', position: 'relative', aspectRatio: '16 / 9', overflow: 'hidden', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' },
+    sliderImage: { width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, transition: 'opacity 0.8s ease-in-out' },
+    sliderDots: { position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '10px' },
+    sliderDot: { width: '12px', height: '12px', borderRadius: '50%', transition: 'background-color 0.3s' },
     servicesSection: { backgroundColor: '#F9FAFB' },
     servicesGrid: { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px' },
     serviceCard: { background: 'white', padding: '40px', borderRadius: '16px', textAlign: 'center', border: `1px solid ${theme.cardBorder}`, transition: 'transform 0.3s ease, box-shadow 0.3s ease' },
     serviceIcon: { fontSize: '3rem', marginBottom: '24px' },
     serviceCardTitle: { fontSize: '1.4rem', color: theme.textDark, fontWeight: '600', marginBottom: '16px' },
     serviceCardText: { fontSize: '1rem', color: theme.textLight, lineHeight: 1.6 },
-    operationsSection: { backgroundColor: '#FFFFFF', padding: '120px 24px' }, // Increased padding
+    operationsSection: { backgroundColor: '#FFFFFF', padding: '120px 24px' },
     operationsGrid: { maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' },
     badgeContainer: { display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' },
     badge: { backgroundColor: theme.primary, color: 'white', padding: '5px 15px', borderRadius: '20px', fontSize: '0.9rem', fontWeight: '500' },
-    
-    // --- Enhanced Product CTA Section ---
-    productCtaSection: {
-      backgroundColor: theme.subtleBg,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      textAlign: 'center',
-    },
-    productCtaIcon: {
-        fontSize: '8rem',
-        color: theme.primary,
-        opacity: 0.3,
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 1,
-    },
-    productCtaContent: {
-        position: 'relative',
-        zIndex: 2,
-    },
+    productCtaSection: { backgroundColor: theme.subtleBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
+    productCtaIcon: { fontSize: '10rem', color: theme.primary, opacity: 0.2, position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 },
+    productCtaContent: { position: 'relative', zIndex: 2 },
     ctaButton: { display: 'inline-block', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, color: 'white', padding: '16px 40px', borderRadius: '50px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem', cursor: 'pointer', transition: 'transform 0.2s ease', border: 'none' },
-    
     testimonialsSection: { background: theme.heroBackground, padding: '80px 24px' },
     testimonialsGrid: { maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' },
     testimonialCard: { background: 'rgba(255,255,255,0.1)', padding: '32px', borderRadius: '16px' },
     testimonialText: { color: 'white', fontStyle: 'italic', fontSize: '1.1rem', marginBottom: '20px' },
     testimonialName: { color: 'rgba(255,255,255,0.8)', fontWeight: '600', textAlign: 'right' },
-    
     footer: { background: '#111827', color: 'rgba(255,255,255,0.7)', padding: '50px 24px 20px' },
     footerContent: { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px' },
     footerTitle: { color: 'white', fontWeight: '600', marginBottom: '12px' },
@@ -209,8 +256,8 @@ const PreviewPage = () => {
         </div>
       </div>
 
-      <main style={styles.websiteContainer}>
-        <header id="home" style={styles.header}>
+      <main>
+        <header style={styles.header}>
           <div style={styles.headerContent}>
             <div style={styles.headerBrand}>
               {businessData.logoUrl && <img src={businessData.logoUrl} alt="Logo" style={styles.logoImage} />}
@@ -220,13 +267,15 @@ const PreviewPage = () => {
               <a href="#home" style={styles.navLink} className="nav-link">Home</a>
               <a onClick={() => navigate('/about')} style={styles.navLink} className="nav-link">About</a>
               <a href="#services" style={styles.navLink} className="nav-link">Services</a>
+              <a href="#gallery" style={styles.navLink} className="nav-link">Gallery</a>
               <a href="#operations" style={styles.navLink} className="nav-link">Payment/Delivery</a>
             </nav>
           </div>
         </header>
 
+        <HeroSection />
+
         <section id="about" style={{...styles.section, ...styles.aboutSection}}>
-          <IndustryAnimation industry={selectedIndustry} />
           <div style={styles.aboutContent}>
             <h2 style={styles.sectionTitle}>Welcome to {businessData.businessName || 'Our Company'}</h2>
             <p style={styles.aboutText}>{businessData.businessDescription || 'Here is a brief description of the business, its mission, and values. We are committed to providing excellent services and products to our valued customers.'}</p>
@@ -237,6 +286,7 @@ const PreviewPage = () => {
         </section>
 
         <ServicesSection />
+        <GallerySection />
         <OperationsSection />
         
         {productData.products && productData.products.length > 0 && (
