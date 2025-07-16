@@ -9,9 +9,9 @@ const PreviewPage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load all data from storage
-    const business = JSON.parse(localStorage.getItem('businessData') || sessionStorage.getItem('businessData') || '{}');
-    const products = JSON.parse(localStorage.getItem('productData') || sessionStorage.getItem('productData') || '{}');
+    // Load data from sessionStorage
+    const business = JSON.parse(sessionStorage.getItem('businessData') || '{}');
+    const products = JSON.parse(sessionStorage.getItem('productData') || '{}');
     const industry = sessionStorage.getItem('selectedIndustry') || '';
 
     setBusinessData(business);
@@ -20,1021 +20,263 @@ const PreviewPage = () => {
     setIsLoading(false);
   }, []);
 
-  // Enhanced theme colors with gradients and modern aesthetics
-  const getThemeColors = (theme) => {
+  const getThemeColors = (themeName) => {
     const themes = {
-      blue: {
-        primary: '#4F46E5',
-        secondary: '#7C3AED',
-        accent: '#10B981',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        heroBackground: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%)',
-        cardBg: '#FAFBFF',
-        cardBorder: '#E0E7FF',
-        textDark: '#1E293B',
-        textLight: '#64748B'
-      },
-      green: {
-        primary: '#059669',
-        secondary: '#047857',
-        accent: '#3B82F6',
-        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-        heroBackground: 'linear-gradient(135deg, #10B981 0%, #059669 50%, #0891B2 100%)',
-        cardBg: '#F0FDF4',
-        cardBorder: '#BBF7D0',
-        textDark: '#1E293B',
-        textLight: '#64748B'
-      },
-      purple: {
-        primary: '#7C3AED',
-        secondary: '#6D28D9',
-        accent: '#EC4899',
-        background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
-        heroBackground: 'linear-gradient(135deg, #A855F7 0%, #7C3AED 50%, #EC4899 100%)',
-        cardBg: '#FAF5FF',
-        cardBorder: '#E9D5FF',
-        textDark: '#1E293B',
-        textLight: '#64748B'
-      },
-      orange: {
-        primary: '#EA580C',
-        secondary: '#DC2626',
-        accent: '#059669',
-        background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-        heroBackground: 'linear-gradient(135deg, #FB923C 0%, #EA580C 50%, #DC2626 100%)',
-        cardBg: '#FFF7ED',
-        cardBorder: '#FED7AA',
-        textDark: '#1E293B',
-        textLight: '#64748B'
-      }
+      blue: { primary: '#4F46E5', secondary: '#7C3AED', heroBackground: 'linear-gradient(135deg, #4338CA 0%, #6D28D9 100%)', textDark: '#1E293B', textLight: '#64748B', cardBorder: '#E0E7FF', subtleBg: '#F0F5FF' },
+      green: { primary: '#059669', secondary: '#047857', heroBackground: 'linear-gradient(135deg, #047857 0%, #065F46 100%)', textDark: '#1E293B', textLight: '#64748B', cardBorder: '#BBF7D0', subtleBg: '#F0FDF4' },
+      purple: { primary: '#7C3AED', secondary: '#6D28D9', heroBackground: 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)', textDark: '#1E293B', textLight: '#64748B', cardBorder: '#E9D5FF', subtleBg: '#FAF5FF' },
+      orange: { primary: '#EA580C', secondary: '#C2410C', heroBackground: 'linear-gradient(135deg, #F97316 0%, #B45309 100%)', textDark: '#1E293B', textLight: '#64748B', cardBorder: '#FED7AA', subtleBg: '#FFF7ED' }
     };
-    return themes[theme] || themes.blue;
+    return themes[themeName] || themes.blue;
   };
 
   const theme = getThemeColors(businessData.colorTheme);
 
-  // Industry-specific styling and content
-  const getIndustryIcon = (industry) => {
-    const icons = {
-      'Pharmacy': '💊',
-      'Cosmetics': '💄',
-      'Restaurant': '🍽️',
-      'Electronics': '📱',
-      'Clothing': '👗',
-      'Grocery': '🛒'
+  // --- Components for Page Sections ---
+
+  const IndustryAnimation = ({ industry }) => {
+    const industryIcons = {
+        'Cosmetics': ['💄', '💅', '🧴', '✨'], 'Pharmacy': ['💊', '➕', '🩺', '🌿'], 'Restaurant': ['🍕', '🍔', '🍜', '🍰'],
+        'Electronics': ['📱', '💻', '🎧', '📷'], 'Clothing': ['👗', '👕', '👠', '👜'], 'Grocery': ['🍎', '🍞', '🥕', '🥛'], 'Default': ['⭐', '🛍️', '📦', '💡']
     };
-    return icons[industry] || '🏪';
+    const icons = industryIcons[industry] || industryIcons['Default'];
+    const positions = [
+        { top: '15%', left: '10%', animation: 'float 6s ease-in-out infinite' }, { top: '70%', left: '20%', animation: 'float 8s ease-in-out infinite' },
+        { top: '25%', left: '80%', animation: 'float 7s ease-in-out infinite' }, { top: '60%', left: '90%', animation: 'float 9s ease-in-out infinite' },
+    ];
+    return <div style={styles.animationContainer}>{icons.map((icon, index) => <div key={index} style={{ ...styles.animatedIcon, ...positions[index] }}>{icon}</div>)}</div>;
+  };
+
+  const ServicesSection = () => {
+    const userServices = businessData.servicesOffered?.split(',').map(s => s.trim()).filter(Boolean);
+    const placeholderServices = ['High-Quality Products', 'Excellent Customer Support', 'Innovative Solutions', 'Satisfaction Guaranteed'];
+    const services = userServices?.length > 0 ? userServices : placeholderServices;
+    const serviceIcons = ['🌟', '💬', '💡', '✅'];
+    return (
+      <section id="services" style={styles.servicesSection}>
+        <h2 style={styles.sectionTitle}>Our Services</h2>
+        <div style={styles.servicesGrid}>
+          {services.slice(0, 4).map((service, index) => (
+            <div key={index} style={styles.serviceCard} className="hover-card">
+              <div style={{ ...styles.serviceIcon, color: theme.primary }}>{serviceIcons[index % serviceIcons.length]}</div>
+              <h3 style={styles.serviceCardTitle}>{service}</h3>
+              <p style={styles.serviceCardText}>Experience top-tier quality and dedication with our {service.toLowerCase()} offering.</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+   const OperationsSection = () => {
+      if (!productData.paymentMethods?.length && !productData.deliveryOptions?.length) return null;
+      return (
+          <section id="operations" style={styles.operationsSection}>
+              <h2 style={styles.sectionTitle}>Payment & Delivery</h2>
+              <div style={styles.operationsGrid}>
+                  {productData.paymentMethods?.length > 0 && (
+                      <div style={styles.serviceCard} className="hover-card">
+                          <div style={{ ...styles.serviceIcon, color: theme.primary }}>💳</div>
+                          <h3 style={styles.serviceCardTitle}>Accepted Payments</h3>
+                          <div style={styles.badgeContainer}>
+                              {productData.paymentMethods.map(method => <span key={method} style={styles.badge}>{method.toUpperCase()}</span>)}
+                          </div>
+                      </div>
+                  )}
+                  {productData.deliveryOptions?.length > 0 && (
+                      <div style={styles.serviceCard} className="hover-card">
+                          <div style={{ ...styles.serviceIcon, color: theme.primary }}>🚚</div>
+                          <h3 style={styles.serviceCardTitle}>Delivery Options</h3>
+                          <div style={styles.badgeContainer}>
+                              {productData.deliveryOptions.map(option => <span key={option} style={styles.badge}>{option.charAt(0).toUpperCase() + option.slice(1)}</span>)}
+                          </div>
+                      </div>
+                  )}
+              </div>
+          </section>
+      );
+  };
+  
+  const TestimonialsSection = () => {
+    const placeholderTestimonials = [
+      { name: 'Rohan S.', feedback: `The quality from ${businessData.businessName || 'this company'} is unmatched!` },
+      { name: 'Priya M.', feedback: 'An amazing experience from start to finish. Highly recommended.' },
+    ];
+    return (
+      <section style={styles.testimonialsSection}>
+        <h2 style={{ ...styles.sectionTitle, color: 'white' }}>What Our Clients Say</h2>
+        <div style={styles.testimonialsGrid}>
+          {placeholderTestimonials.map((testimonial, index) => (
+            <div key={index} style={styles.testimonialCard}>
+              <p style={styles.testimonialText}>"{testimonial.feedback}"</p>
+              <p style={styles.testimonialName}>- {testimonial.name}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
   };
 
   const styles = {
-    container: {
-      fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-      margin: 0,
-      padding: 0,
-      backgroundColor: '#FAFBFC',
-      lineHeight: '1.6'
-    },
-    previewControls: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      background: 'rgba(15, 23, 42, 0.95)',
-      backdropFilter: 'blur(12px)',
-      color: 'white',
-      padding: '16px 24px',
+    container: { fontFamily: "'Inter', sans-serif", backgroundColor: '#F9FAFB' },
+    previewControls: { position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(10px)', color: 'white', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000 },
+    controlButton: { background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', margin: '0 6px', fontWeight: '500' },
+    websiteContainer: { marginTop: '65px' },
+    header: { background: theme.heroBackground, color: 'white', padding: '20px 24px', position: 'sticky', top: '65px', zIndex: 900, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' },
+    headerContent: { maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    headerBrand: { display: 'flex', alignItems: 'center', gap: '16px' },
+    logoImage: { width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' },
+    businessName: { fontSize: '1.5rem', fontWeight: 'bold' },
+    nav: { display: 'flex', gap: '24px' },
+    navLink: { color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontWeight: '500', fontSize: '1rem', transition: 'color 0.2s', cursor: 'pointer' },
+    section: { padding: '100px 24px', position: 'relative', overflow: 'hidden' },
+    sectionTitle: { fontFamily: "'Georgia', 'Times New Roman', serif", fontSize: '3rem', textAlign: 'center', marginBottom: '50px', color: theme.textDark, fontWeight: 'normal' },
+    aboutSection: { backgroundColor: '#FFFFFF' },
+    aboutContent: { maxWidth: '800px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 2 },
+    aboutText: { fontSize: '1.2rem', color: theme.textLight, lineHeight: 1.8 },
+    readMoreButton: { display: 'inline-block', marginTop: '30px', padding: '12px 24px', border: `2px solid ${theme.primary}`, color: theme.primary, backgroundColor: 'transparent', borderRadius: '50px', fontWeight: 'bold', textDecoration: 'none', cursor: 'pointer', transition: 'all 0.3s ease' },
+    animationContainer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1 },
+    animatedIcon: { position: 'absolute', fontSize: '6rem', opacity: 0.15, color: theme.primary },
+    servicesSection: { backgroundColor: '#F9FAFB' },
+    servicesGrid: { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px' },
+    serviceCard: { background: 'white', padding: '40px', borderRadius: '16px', textAlign: 'center', border: `1px solid ${theme.cardBorder}`, transition: 'transform 0.3s ease, box-shadow 0.3s ease' },
+    serviceIcon: { fontSize: '3rem', marginBottom: '24px' },
+    serviceCardTitle: { fontSize: '1.4rem', color: theme.textDark, fontWeight: '600', marginBottom: '16px' },
+    serviceCardText: { fontSize: '1rem', color: theme.textLight, lineHeight: 1.6 },
+    operationsSection: { backgroundColor: '#FFFFFF', padding: '120px 24px' }, // Increased padding
+    operationsGrid: { maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' },
+    badgeContainer: { display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' },
+    badge: { backgroundColor: theme.primary, color: 'white', padding: '5px 15px', borderRadius: '20px', fontSize: '0.9rem', fontWeight: '500' },
+    
+    // --- Enhanced Product CTA Section ---
+    productCtaSection: {
+      backgroundColor: theme.subtleBg,
       display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      zIndex: 1000,
-      borderBottom: '1px solid rgba(255,255,255,0.1)',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-    },
-    controlButton: {
-      background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
-      color: 'white',
-      border: 'none',
-      padding: '10px 20px',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      margin: '0 6px',
-      fontSize: '14px',
-      fontWeight: '500',
-      transition: 'all 0.3s ease',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '8px'
-    },
-    websiteContainer: {
-      marginTop: '70px',
-      minHeight: '100vh'
-    },
-    header: {
-      background: theme.heroBackground,
-      color: 'white',
-      padding: '100px 0',
-      textAlign: 'center',
-      position: 'relative',
-      overflow: 'hidden'
-    },
-    headerOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(0,0,0,0.1)',
-      zIndex: 1
-    },
-    floatingShapes: {
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-      overflow: 'hidden',
-      zIndex: 0
-    },
-    headerContent: {
-      maxWidth: '1200px',
-      margin: '0 auto',
-      padding: '0 24px',
-      position: 'relative',
-      zIndex: 2
-    },
-    businessName: {
-      fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-      fontWeight: '700',
-      marginBottom: '24px',
-      textShadow: '0 4px 20px rgba(0,0,0,0.3)',
-      display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: '20px',
-      lineHeight: '1.2'
-    },
-    industryIcon: {
-      fontSize: 'clamp(3rem, 6vw, 5rem)',
-      marginBottom: '20px',
-      filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))'
-    },
-    tagline: {
-      fontSize: 'clamp(1.1rem, 2vw, 1.4rem)',
-      opacity: 0.95,
-      marginBottom: '40px',
-      fontWeight: '300',
-      maxWidth: '600px',
-      margin: '0 auto 40px'
-    },
-    contactInfo: {
-      display: 'flex',
-      justifyContent: 'center',
-      gap: '20px',
-      flexWrap: 'wrap',
-      marginTop: '40px'
-    },
-    contactItem: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-      background: 'rgba(255,255,255,0.15)',
-      padding: '12px 20px',
-      borderRadius: '50px',
-      backdropFilter: 'blur(20px)',
-      border: '1px solid rgba(255,255,255,0.2)',
-      transition: 'all 0.3s ease',
-      fontSize: '0.95rem',
-      fontWeight: '400'
-    },
-    section: {
-      padding: '100px 0',
-      maxWidth: '1200px',
-      margin: '0 auto'
-    },
-    sectionTitle: {
-      fontSize: 'clamp(2rem, 4vw, 3rem)',
       textAlign: 'center',
-      marginBottom: '60px',
-      color: theme.textDark,
-      position: 'relative',
-      fontWeight: '700'
     },
-    sectionTitleUnderline: {
-      position: 'absolute',
-      bottom: '-10px',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      width: '60px',
-      height: '4px',
-      background: `linear-gradient(90deg, ${theme.primary}, ${theme.accent})`,
-      borderRadius: '2px'
+    productCtaIcon: {
+        fontSize: '8rem',
+        color: theme.primary,
+        opacity: 0.3,
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 1,
     },
-    aboutSection: {
-      background: 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)',
-      padding: '100px 24px',
-      margin: '0',
-      position: 'relative'
+    productCtaContent: {
+        position: 'relative',
+        zIndex: 2,
     },
-    aboutContent: {
-      maxWidth: '1200px',
-      margin: '0 auto',
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-      gap: '32px'
-    },
-    aboutCard: {
-      background: 'rgba(255,255,255,0.9)',
-      padding: '40px',
-      borderRadius: '20px',
-      boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
-      border: `1px solid ${theme.cardBorder}`,
-      transition: 'all 0.3s ease',
-      position: 'relative',
-      overflow: 'hidden'
-    },
-    cardTitle: {
-      color: theme.primary,
-      fontSize: '1.5rem',
-      marginBottom: '20px',
-      fontWeight: '600'
-    },
-    cardText: {
-      color: theme.textLight,
-      lineHeight: '1.7',
-      fontSize: '1rem'
-    },
-    productsSection: {
-      background: 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)',
-      padding: '100px 24px',
-      position: 'relative'
-    },
-    productsGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-      gap: '32px',
-      maxWidth: '1200px',
-      margin: '0 auto'
-    },
-    productCard: {
-      background: 'white',
-      borderRadius: '24px',
-      overflow: 'hidden',
-      boxShadow: '0 25px 50px rgba(0,0,0,0.1)',
-      transition: 'all 0.4s ease',
-      border: '1px solid rgba(255,255,255,0.8)',
-      position: 'relative'
-    },
-    productImage: {
-      width: '100%',
-      height: '240px',
-      objectFit: 'cover',
-      background: `linear-gradient(135deg, ${theme.cardBg}, ${theme.cardBorder})`,
-      transition: 'transform 0.4s ease'
-    },
-    productInfo: {
-      padding: '32px'
-    },
-    productName: {
-      fontSize: '1.4rem',
-      color: theme.textDark,
-      marginBottom: '12px',
-      fontWeight: '600',
-      lineHeight: '1.3'
-    },
-    productPrice: {
-      fontSize: '1.6rem',
-      color: theme.primary,
-      fontWeight: '700',
-      marginBottom: '16px'
-    },
-    productDescription: {
-      color: theme.textLight,
-      lineHeight: '1.6',
-      fontSize: '0.95rem'
-    },
-    servicesSection: {
-      background: 'linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%)',
-      padding: '100px 24px',
-      position: 'relative'
-    },
-    servicesGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-      gap: '32px',
-      maxWidth: '1200px',
-      margin: '0 auto'
-    },
-    serviceCard: {
-      background: 'rgba(255,255,255,0.9)',
-      padding: '40px',
-      borderRadius: '20px',
-      textAlign: 'center',
-      boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
-      border: `1px solid ${theme.cardBorder}`,
-      transition: 'all 0.3s ease',
-      position: 'relative',
-      overflow: 'hidden'
-    },
-    serviceIcon: {
-      fontSize: '3.5rem',
-      marginBottom: '24px',
-      filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
-    },
-    footer: {
-      background: theme.heroBackground,
-      color: 'white',
-      padding: '80px 24px 40px',
-      textAlign: 'center',
-      position: 'relative',
-      overflow: 'hidden'
-    },
-    footerContent: {
-      maxWidth: '1200px',
-      margin: '0 auto',
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-      gap: '48px',
-      marginBottom: '48px'
-    },
-    footerSection: {
-      textAlign: 'left'
-    },
-    footerTitle: {
-      fontSize: '1.4rem',
-      marginBottom: '24px',
-      color: 'white',
-      fontWeight: '600'
-    },
-    footerText: {
-      opacity: 0.9,
-      lineHeight: '1.7',
-      fontSize: '0.95rem'
-    },
-    paymentMethods: {
-      display: 'flex',
-      gap: '12px',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      marginTop: '16px'
-    },
-    paymentBadge: {
-      background: 'rgba(255,255,255,0.15)',
-      padding: '8px 16px',
-      borderRadius: '20px',
-      fontSize: '0.85rem',
-      fontWeight: '500',
-      border: '1px solid rgba(255,255,255,0.2)',
-      backdropFilter: 'blur(10px)'
-    },
-    loadingContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    },
-    loadingContent: {
-      textAlign: 'center',
-      color: 'white'
-    },
-    loadingText: {
-      fontSize: '2rem',
-      marginBottom: '30px',
-      fontWeight: '300'
-    },
-    loadingSpinner: {
-      width: '60px',
-      height: '60px',
-      border: '6px solid rgba(255,255,255,0.3)',
-      borderTop: '6px solid white',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite',
-      margin: '0 auto'
-    }
-  };
-
-  const downloadWebsite = () => {
-    const htmlContent = generateHTMLContent();
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${businessData.businessName || 'website'}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const generateHTMLContent = () => {
-    return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${businessData.businessName || 'My Business'}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; 
-            line-height: 1.6;
-            color: #1E293B;
-        }
-        .header { 
-            background: ${theme.heroBackground}; 
-            color: white; 
-            padding: 100px 0; 
-            text-align: center; 
-            position: relative;
-            overflow: hidden;
-        }
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.1);
-            z-index: 1;
-        }
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            padding: 0 24px; 
-            position: relative;
-            z-index: 2;
-        }
-        .business-name { 
-            font-size: clamp(2.5rem, 5vw, 4rem); 
-            margin-bottom: 24px; 
-            font-weight: 700;
-            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            line-height: 1.2;
-        }
-        .industry-icon {
-            font-size: clamp(3rem, 6vw, 5rem);
-            margin-bottom: 20px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-        }
-        .tagline { 
-            font-size: clamp(1.1rem, 2vw, 1.4rem); 
-            opacity: 0.95; 
-            margin-bottom: 40px; 
-            font-weight: 300;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .section { 
-            padding: 100px 0; 
-        }
-        .section-title { 
-            font-size: clamp(2rem, 4vw, 3rem); 
-            text-align: center; 
-            margin-bottom: 60px; 
-            color: ${theme.textDark}; 
-            font-weight: 700;
-            position: relative;
-        }
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(90deg, ${theme.primary}, ${theme.accent});
-            border-radius: 2px;
-        }
-        .about-section {
-            background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
-            padding: 100px 24px;
-        }
-        .about-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 32px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .about-card {
-            background: rgba(255,255,255,0.9);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-            border: 1px solid ${theme.cardBorder};
-        }
-        .card-title {
-            color: ${theme.primary};
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        .products-section {
-            background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
-            padding: 100px 24px;
-        }
-        .products-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
-            gap: 32px; 
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .product-card { 
-            background: white; 
-            border-radius: 24px; 
-            overflow: hidden; 
-            box-shadow: 0 25px 50px rgba(0,0,0,0.1); 
-            border: 1px solid rgba(255,255,255,0.8);
-            transition: transform 0.3s ease;
-        }
-        .product-card:hover {
-            transform: translateY(-8px);
-        }
-        .product-image {
-            width: 100%;
-            height: 240px;
-            object-fit: cover;
-            background: linear-gradient(135deg, ${theme.cardBg}, ${theme.cardBorder});
-        }
-        .product-info { 
-            padding: 32px; 
-        }
-        .product-name { 
-            font-size: 1.4rem; 
-            color: ${theme.textDark}; 
-            margin-bottom: 12px; 
-            font-weight: 600;
-            line-height: 1.3;
-        }
-        .product-price { 
-            font-size: 1.6rem; 
-            color: ${theme.primary}; 
-            font-weight: 700; 
-            margin-bottom: 16px; 
-        }
-        .product-description {
-            color: ${theme.textLight};
-            line-height: 1.6;
-            font-size: 0.95rem;
-        }
-        .footer { 
-            background: ${theme.heroBackground}; 
-            color: white; 
-            padding: 80px 24px 40px; 
-            text-align: center; 
-            position: relative;
-            overflow: hidden;
-        }
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 48px;
-            margin-bottom: 48px;
-        }
-        .footer-section {
-            text-align: left;
-        }
-        .footer-title {
-            font-size: 1.4rem;
-            margin-bottom: 24px;
-            font-weight: 600;
-        }
-        .footer-text {
-            opacity: 0.9;
-            line-height: 1.7;
-            font-size: 0.95rem;
-        }
-        @media (max-width: 768px) {
-            .about-content {
-                grid-template-columns: 1fr;
-            }
-            .products-grid {
-                grid-template-columns: 1fr;
-            }
-            .footer-content {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-            .footer-section {
-                text-align: center;
-            }
-        }
-    </style>
-</head>
-<body>
-    <header class="header">
-        <div class="container">
-            <div class="industry-icon">${getIndustryIcon(selectedIndustry)}</div>
-            <h1 class="business-name">${businessData.businessName || 'My Business'}</h1>
-            <p class="tagline">${businessData.businessDescription || 'Welcome to our business'}</p>
-        </div>
-    </header>
-
-    <section class="about-section">
-    <h2 class="section-title">About ${businessData.businessName || 'Our Business'}</h2>
-    <div class="about-content">
-        <div class="about-card">
-            <h3 class="card-title">Our Story</h3>
-            <p>${businessData.businessDescription || 'We are committed to providing excellent products and services to our customers.'}</p>
-            ${businessData.establishedYear ? `<p style="margin-top: 16px; color: ${theme.primary}; font-weight: 500;">Established: ${businessData.establishedYear}</p>` : ''}
-        </div>
-        <div class="about-card">
-            <h3 class="card-title">Our Services</h3>
-            <p>${businessData.servicesOffered || 'We offer a wide range of quality products and services.'}</p>
-            ${businessData.targetAudience ? `<p style="margin-top: 16px; color: ${theme.primary}; font-weight: 500;">Target Audience: ${businessData.targetAudience}</p>` : ''}
-        </div>
-        <div class="about-card">
-            <h3 class="card-title">Target Audience</h3>
-            <p>${businessData.targetAudience || 'Our offerings are tailored to meet the needs of our valued customers.'}</p>
-        </div>
-    </div>
-</section>
-
-
-    <section class="products-section">
-        <div class="container">
-            <h2 class="section-title">Our Products</h2>
-            <div class="products-grid">
-                ${productData.products?.map(product => `
-                    <div class="product-card">
-                        ${product.productImage ? `<img src="${product.productImage}" alt="${product.productName}" class="product-image">` : ''}
-                        <div class="product-info">
-                            <h3 class="product-name">${product.productName}</h3>
-                            ${product.productPrice ? `<div class="product-price">₹${product.productPrice}</div>` : ''}
-                            ${product.productDescription ? `<p class="product-description">${product.productDescription}</p>` : ''}
-                        </div>
-                    </div>
-                `).join('') || '<p>No products available</p>'}
-            </div>
-        </div>
-    </section>
-
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3 class="footer-title">${businessData.businessName || 'My Business'}</h3>
-                <p class="footer-text">${businessData.businessDescription || 'Your trusted business partner'}</p>
-            </div>
-            <div class="footer-section">
-                <h3 class="footer-title">Contact Information</h3>
-                <p class="footer-text">📧 ${businessData.email || 'contact@business.com'}</p>
-                <p class="footer-text">📞 ${businessData.phone || 'Phone not provided'}</p>
-                ${businessData.whatsapp ? `<p class="footer-text">📱 ${businessData.whatsapp}</p>` : ''}
-            </div>
-            <div class="footer-section">
-                <h3 class="footer-title">Location</h3>
-                <p class="footer-text">${businessData.address || 'Address not provided'}</p>
-                ${businessData.website ? `<p class="footer-text">🌐 ${businessData.website}</p>` : ''}
-            </div>
-        </div>
-        <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 24px; margin-top: 24px;">
-  ${businessData.establishedYear
-    ? `<p style="opacity: 0.7;">© ${businessData.establishedYear} ${businessData.businessName || 'My Business'}. All rights reserved. | Generated by WebsiteBoss.com</p>`
-    : `<p style="opacity: 0.7;">© 2025 ${businessData.businessName || 'My Business'}. All rights reserved. | Generated by WebsiteBoss.com</p>`}
-</div>
-
-    </footer>
-</body>
-</html>`;
+    ctaButton: { display: 'inline-block', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, color: 'white', padding: '16px 40px', borderRadius: '50px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.2rem', cursor: 'pointer', transition: 'transform 0.2s ease', border: 'none' },
+    
+    testimonialsSection: { background: theme.heroBackground, padding: '80px 24px' },
+    testimonialsGrid: { maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' },
+    testimonialCard: { background: 'rgba(255,255,255,0.1)', padding: '32px', borderRadius: '16px' },
+    testimonialText: { color: 'white', fontStyle: 'italic', fontSize: '1.1rem', marginBottom: '20px' },
+    testimonialName: { color: 'rgba(255,255,255,0.8)', fontWeight: '600', textAlign: 'right' },
+    
+    footer: { background: '#111827', color: 'rgba(255,255,255,0.7)', padding: '50px 24px 20px' },
+    footerContent: { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px' },
+    footerTitle: { color: 'white', fontWeight: '600', marginBottom: '12px' },
+    footerLink: { color: 'inherit', textDecoration: 'none' },
+    footerBottom: { borderTop: '1px solid #374151', marginTop: '40px', paddingTop: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' },
   };
 
   if (isLoading) {
-    return (
-      <div style={styles.loadingContainer}>
-        <div style={styles.loadingContent}>
-          <div style={styles.loadingText}>Loading your website...</div>
-          <div style={styles.loadingSpinner}></div>
-        </div>
-      </div>
-    );
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><div style={{width: '50px', height: '50px', border: `5px solid #e2e8f0`, borderTop: `5px solid ${theme.primary}`, borderRadius: '50%', animation: 'spin 1s linear infinite'}}></div></div>;
   }
 
   return (
     <div style={styles.container}>
-      {/* Preview Controls */}
+      <style>{`
+        html { scroll-behavior: smooth; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+        .hover-card:hover { transform: translateY(-10px); box-shadow: 0 25px 40px -15px rgba(0,0,0,0.1); }
+        .nav-link:hover { color: white !important; }
+        .read-more-button:hover { background-color: ${theme.primary}; color: white; }
+        .cta-button:hover { transform: scale(1.05); }
+      `}</style>
+      
       <div style={styles.previewControls}>
+        <strong>Preview: {businessData.businessName}</strong>
         <div>
-          <strong>Preview: {businessData.businessName || 'Website'}</strong>
-          <span style={{ marginLeft: '20px', opacity: 0.7 }}>
-            Industry: {selectedIndustry} | Theme: {businessData.colorTheme}
-          </span>
-        </div>
-        <div>
-          <button style={styles.controlButton} onClick={() => navigate('/website-generator')}>
-            ← Back to Generator
-          </button>
-          <button style={styles.controlButton} onClick={downloadWebsite}>
-            💾 Download Website
-          </button>
-          <button style={{ ...styles.controlButton, background: 'linear-gradient(135deg, #10B981, #059669)' }} onClick={() => alert('Deployment feature coming soon!')}>
-            🚀 Deploy Live
-          </button>
+          <button style={styles.controlButton} onClick={() => navigate(-1)}>← Back</button>
         </div>
       </div>
 
-      {/* Generated Website */}
-      <div style={styles.websiteContainer}>
-        {/* Header Section */}
-        <header style={styles.header}>
-          <div style={styles.headerOverlay}></div>
-          <div style={styles.floatingShapes}>
-            <div style={{
-              position: 'absolute',
-              top: '20%',
-              left: '10%',
-              width: '100px',
-              height: '100px',
-              background: 'rgba(255,255,255,0.1)',
-              borderRadius: '50%',
-              animation: 'float 6s ease-in-out infinite'
-            }}></div>
-            <div style={{
-              position: 'absolute',
-              top: '60%',
-              right: '15%',
-              width: '150px',
-              height: '150px',
-              background: 'rgba(255,255,255,0.05)',
-              borderRadius: '30px',
-              transform: 'rotate(45deg)',
-              animation: 'float 8s ease-in-out infinite reverse'
-            }}></div>
-          </div>
+      <main style={styles.websiteContainer}>
+        <header id="home" style={styles.header}>
           <div style={styles.headerContent}>
-            <div style={styles.industryIcon}>{getIndustryIcon(selectedIndustry)}</div>
-            <h1 style={styles.businessName}>{businessData.businessName || 'My Business'}</h1>
-            <p style={styles.tagline}>{businessData.businessDescription || 'Welcome to our business'}</p>
-            
-            <div style={styles.contactInfo}>
-              {businessData.email && (
-                <div style={styles.contactItem}>
-                  <span>📧</span>
-                  <span>{businessData.email}</span>
-                </div>
-              )}
-              {businessData.phone && (
-                <div style={styles.contactItem}>
-                  <span>📞</span>
-                  <span>{businessData.phone}</span>
-                </div>
-              )}
-              {businessData.whatsapp && (
-                <div style={styles.contactItem}>
-                  <span>📱</span>
-                  <span>{businessData.whatsapp}</span>
-                </div>
-              )}
+            <div style={styles.headerBrand}>
+              {businessData.logoUrl && <img src={businessData.logoUrl} alt="Logo" style={styles.logoImage} />}
+              <h1 style={styles.businessName}>{businessData.businessName || 'Business Name'}</h1>
             </div>
+            <nav style={styles.nav}>
+              <a href="#home" style={styles.navLink} className="nav-link">Home</a>
+              <a onClick={() => navigate('/about')} style={styles.navLink} className="nav-link">About</a>
+              <a href="#services" style={styles.navLink} className="nav-link">Services</a>
+              <a href="#operations" style={styles.navLink} className="nav-link">Payment/Delivery</a>
+            </nav>
           </div>
         </header>
 
-        {/* About Section */}
-<section style={styles.aboutSection}>
-  <h2 style={{ ...styles.sectionTitle, position: 'relative' }}>
-    About {businessData.businessName || 'Our Business'}
-    <div style={styles.sectionTitleUnderline}></div>
-  </h2>
-  <div style={styles.aboutContent}>
-    {/* Our Story */}
-    <div style={styles.aboutCard}>
-      <h3 style={styles.cardTitle}>Our Story</h3>
-      <p style={styles.cardText}>
-        {businessData.businessDescription || 'We are committed to providing excellent products and services to our customers.'}
-      </p>
-      {businessData.establishedYear && (
-        <p style={{ marginTop: '16px', color: theme.primary, fontWeight: '500' }}>
-          <strong>Established: {businessData.establishedYear}</strong>
-        </p>
-      )}
-    </div>
+        <section id="about" style={{...styles.section, ...styles.aboutSection}}>
+          <IndustryAnimation industry={selectedIndustry} />
+          <div style={styles.aboutContent}>
+            <h2 style={styles.sectionTitle}>Welcome to {businessData.businessName || 'Our Company'}</h2>
+            <p style={styles.aboutText}>{businessData.businessDescription || 'Here is a brief description of the business, its mission, and values. We are committed to providing excellent services and products to our valued customers.'}</p>
+            <button onClick={() => navigate('/about')} style={styles.readMoreButton} className="read-more-button">
+              Read More About Us
+            </button>
+          </div>
+        </section>
 
-    {/* Our Services */}
-    <div style={styles.aboutCard}>
-      <h3 style={styles.cardTitle}>Our Services</h3>
-      <p style={styles.cardText}>
-        {businessData.servicesOffered || 'We offer a wide range of quality products and services.'}
-      </p>
-    </div>
-
-    {/* Target Audience (New Section) */}
-    <div style={styles.aboutCard}>
-  <h3 style={styles.cardTitle}>Target Audience</h3>
-  <p style={styles.cardText}>
-    {businessData.targetAudience && businessData.targetAudience.trim() !== ''
-      ? businessData.targetAudience
-      : 'Our products are designed to meet the needs of a wide and diverse audience.'}
-  </p>
-</div>
-
-  </div>
-
-
-  
-</section>
-
-
-        {/* Products Section */}
+        <ServicesSection />
+        <OperationsSection />
+        
         {productData.products && productData.products.length > 0 && (
-          <section style={styles.productsSection}>
-            <h2 style={{...styles.sectionTitle, position: 'relative'}}>
-              Our Products
-              <div style={styles.sectionTitleUnderline}></div>
-            </h2>
-            <div style={styles.productsGrid}>
-              {productData.products.map((product, index) => (
-                <div key={index} style={styles.productCard}>
-                  {product.productImage && (
-                    <img 
-                      src={product.productImage} 
-                      alt={product.productName}
-                      style={styles.productImage}
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  )}
-                  <div style={styles.productInfo}>
-                    <h3 style={styles.productName}>{product.productName}</h3>
-                    {product.productPrice && (
-                      <div style={styles.productPrice}>
-  ₹{Number(product.productPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-</div>
-
-                    )}
-                    {product.productDescription && (
-                      <p style={styles.productDescription}>{product.productDescription}</p>
-                    )}
-                    {product.productCategory && (
-                      <p style={{ color: theme.primary, marginTop: '12px', fontSize: '0.9rem', fontWeight: '500' }}>
-                        <strong>Category:</strong> {product.productCategory}
-                      </p>
-                    )}
-                    {product.productSku && (
-                      <p style={{ color: theme.textLight, fontSize: '0.8rem', marginTop: '8px' }}>
-                        SKU: {product.productSku}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
+          <section id="products-cta" style={{...styles.section, ...styles.productCtaSection}}>
+            <div style={styles.productCtaIcon}>🛍️</div>
+            <div style={styles.productCtaContent}>
+                <h2 style={styles.sectionTitle}>Our Products</h2>
+                <p style={{...styles.aboutText, marginBottom: '40px', maxWidth: '600px'}}>We have a wide range of products available. Click the button below to see our full catalog.</p>
+                <button style={styles.ctaButton} className="cta-button" onClick={() => navigate('/products')}>
+                View All Products
+                </button>
             </div>
           </section>
         )}
 
-        {/* Services Section */}
-        <section style={styles.servicesSection}>
-          <h2 style={{...styles.sectionTitle, position: 'relative'}}>
-            Our Services
-            <div style={styles.sectionTitleUnderline}></div>
-          </h2>
-          <div style={styles.servicesGrid}>
-            {productData.paymentMethods && productData.paymentMethods.length > 0 && (
-              <div style={styles.serviceCard}>
-                <div style={styles.serviceIcon}>💳</div>
-                <h3 style={styles.cardTitle}>Payment Methods</h3>
-                <div style={styles.paymentMethods}>
-                  {productData.paymentMethods.map((method, index) => (
-                    <span key={index} style={styles.paymentBadge}>
-                      {method.toUpperCase()}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {productData.deliveryOptions && productData.deliveryOptions.length > 0 && (
-              <div style={styles.serviceCard}>
-                <div style={styles.serviceIcon}>🚚</div>
-                <h3 style={styles.cardTitle}>Delivery Options</h3>
-                <div style={styles.paymentMethods}>
-                  {productData.deliveryOptions.map((option, index) => (
-                    <span key={index} style={styles.paymentBadge}>
-                      {option.charAt(0).toUpperCase() + option.slice(1)}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {productData.categories && (
-              <div style={styles.serviceCard}>
-                <div style={styles.serviceIcon}>📂</div>
-                <h3 style={styles.cardTitle}>Product Categories</h3>
-                <p style={styles.footerText}>{productData.categories}</p>
-              </div>
-            )}
-
-            {productData.deliveryAreas && (
-              <div style={styles.serviceCard}>
-                <div style={styles.serviceIcon}>🗺️</div>
-                <h3 style={styles.cardTitle}>Delivery Areas</h3>
-                <p style={styles.footerText}>{productData.deliveryAreas}</p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Footer */}
-        <footer style={styles.footer}>
+        <TestimonialsSection />
+        
+        <footer id="contact" style={styles.footer}>
           <div style={styles.footerContent}>
-            <div style={styles.footerSection}>
-              <h3 style={styles.footerTitle}>{businessData.businessName || 'My Business'}</h3>
-              <p style={styles.footerText}>{businessData.businessDescription || 'Your trusted business partner'}</p>
+            <div>
+              <h4 style={styles.footerTitle}>{businessData.businessName}</h4>
+              <p>{businessData.address}</p>
             </div>
-            
-            <div style={styles.footerSection}>
-              <h3 style={styles.footerTitle}>Contact Information</h3>
-              <p style={styles.footerText}>📧 {businessData.email || 'contact@business.com'}</p>
-              <p style={styles.footerText}>📞 {businessData.phone || 'Phone not provided'}</p>
-              {businessData.whatsapp && <p style={styles.footerText}>📱 {businessData.whatsapp}</p>}
+            <div>
+              <h4 style={styles.footerTitle}>Contact Us</h4>
+              <p>Email: {businessData.email}</p>
+              <p>Phone: {businessData.phone}</p>
             </div>
-            
-            <div style={styles.footerSection}>
-              <h3 style={styles.footerTitle}>Location</h3>
-              <p style={styles.footerText}>{businessData.address || 'Address not provided'}</p>
-              {businessData.website && <p style={styles.footerText}>🌐 {businessData.website}</p>}
+            <div>
+                <h4 style={styles.footerTitle}>Quick Links</h4>
+                <p><a href="#home" style={styles.footerLink}>Home</a></p>
+                <p><a href="#about" style={styles.footerLink}>About</a></p>
+                <p><a href="#services" style={styles.footerLink}>Services</a></p>
             </div>
           </div>
-          
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '24px', marginTop: '24px' }}>
-            <p style={{ opacity: 0.7, fontSize: '0.9rem' }}>
-              © 2024 {businessData.businessName || 'My Business'}. All rights reserved. | 
-              Generated by WebsiteBoss.com
-            </p>
+          <div style={styles.footerBottom}>
+            <p>© {new Date().getFullYear()} {businessData.businessName}. All Rights Reserved. Generated by WebsiteBoss</p>
           </div>
         </footer>
-      </div>
-
-      <style>
-        {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-          
-          @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-          }
-          
-          .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
-          }
-          
-          .product-card:hover .product-image {
-            transform: scale(1.05);
-          }
-          
-          .about-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.12);
-          }
-          
-          .service-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.12);
-          }
-          
-          .contact-item:hover {
-            background: rgba(255,255,255,0.25);
-            transform: translateY(-2px);
-          }
-          
-          .control-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-          }
-          
-          @media (max-width: 768px) {
-            .about-content {
-              grid-template-columns: 1fr;
-            }
-            .products-grid {
-              grid-template-columns: 1fr;
-            }
-            .services-grid {
-              grid-template-columns: 1fr;
-            }
-            .footer-content {
-              grid-template-columns: 1fr;
-              text-align: center;
-            }
-            .footer-section {
-              text-align: center;
-            }
-            .contact-info {
-              flex-direction: column;
-              align-items: center;
-            }
-          }
-        `}
-      </style>
+      </main>
     </div>
   );
 };

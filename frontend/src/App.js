@@ -5,6 +5,9 @@ import InfoPage from './components/InfoPage';
 import ProductSetupPage from './components/ProductSetupPage';
 import WebsiteGeneratorPage from './components/WebsiteGeneratorPage';
 import PreviewPage from './components/PreviewPage';
+import AboutPage from './components/pages/AboutPage';
+// Add this new import
+import AllProductsPage from './components/pages/AllProductsPage'; 
 
 function App() {
   return (
@@ -15,6 +18,9 @@ function App() {
         <Route path="/product-setup" element={<ProductSetupPage />} />
         <Route path="/website-generator" element={<WebsiteGeneratorPage />} />
         <Route path="/preview" element={<PreviewPage />} />
+        {/* Add this new route */}
+        <Route path="/products" element={<AllProductsPage />} />
+        <Route path="/about" element={<AboutPage />} />
       </Routes>
     </Router>
   );
